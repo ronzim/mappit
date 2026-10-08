@@ -4,7 +4,7 @@
 > Supports all export formats (Records.json, Timeline.json, Semantic Location History), handles files > 500 MB, and keeps your data 100 % local.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 
 **Keywords:** google location history viewer, google takeout visualization, google maps timeline viewer, google location history map, location history export tool, GPS data visualization, google timeline data explorer
 
@@ -40,7 +40,7 @@ Il repository è un **monorepo npm workspaces** composto da due package:
 
 ## Prerequisiti
 
-- Node.js ≥ 18
+- Node.js ≥ 20.19 (richiesto da Vite 7 ed electron-vite 5)
 - npm ≥ 10
 
 ---

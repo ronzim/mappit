@@ -2,9 +2,9 @@ name: CI
 
 on:
     push:
-        branches: [main, refactoring]
+        branches: [master]
     pull_request:
-        branches: [main]
+        branches: [master]
 
 jobs:
     lint:
@@ -24,7 +24,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                node-version: [18, 20, 22]
+                node-version: [20, 22]
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
@@ -45,6 +45,7 @@ jobs:
                   node-version: 20
                   cache: npm
             - run: npm ci
+            - run: npm run build --workspace=packages/core
             - run: npm run typecheck --workspace=packages/core
             - run: npm run typecheck --workspace=packages/app
 
