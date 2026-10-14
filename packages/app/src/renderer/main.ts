@@ -187,6 +187,9 @@ async function handleExport(): Promise<void> {
             defaultName: 'mappit-export.kml',
             filters: [
                 { name: 'KML files', extensions: ['kml'] },
+                { name: 'GeoJSON files', extensions: ['geojson'] },
+                { name: 'CSV files', extensions: ['csv'] },
+                { name: 'E7 locations (travel blog)', extensions: ['e7.json'] },
                 { name: 'JSON files', extensions: ['json'] },
                 { name: 'All files', extensions: ['*'] },
             ],

@@ -10,6 +10,9 @@
  *   mappit-core load <path> --filter-activity WALKING,CYCLING
  *   mappit-core load <path> --export output.json
  *   mappit-core load <path> --export output.kml
+ *   mappit-core load <path> --export output.geojson               # also .csv
+ *   mappit-core load <path> --export route.e7.json                # E7 locations (travel blog)
+ *   mappit-core load <path> --export out.json --export-format e7
  *   mappit-core load <path> --stats
  *   mappit-core load <path> --quality                             # validation + quality metrics
  *   mappit-core load <path> --sanitize --export clean.json        # drop invalid items
@@ -32,8 +35,8 @@ import { filterByDateRange, filterByArea, filterByActivityType } from './filters
 import type { BoundingBox } from './filters';
 import { computeSummary, computeYearlySummary } from './stats';
 import { validateDataset, sanitizeDataset, computeQualityMetrics } from './quality';
-import { exportToJson } from './exporters/json-exporter';
-import { exportToKml } from './exporters/kml-exporter';
+import { exportDataset, exportFormatFromPath, EXPORT_FORMATS } from './exporters';
+import type { ExportFormat } from './exporters';
 import type { MappitDataset, DataSource } from './types';
 
 // ---------------------------------------------------------------------------
@@ -326,7 +329,13 @@ export function run(argv?: string[]): void {
                     })
                     .option('export', {
                         alias: 'e',
-                        describe: 'Export to file (.json or .kml)',
+                        describe:
+                            'Export to file; format from the extension: .json, .kml, .geojson, .csv, .e7.json (E7 locations)',
+                        type: 'string',
+                    })
+                    .option('export-format', {
+                        describe: 'Force the export format instead of using the file extension',
+                        choices: EXPORT_FORMATS,
                         type: 'string',
                     })
                     .option('stats', {
@@ -394,18 +403,12 @@ export function run(argv?: string[]): void {
 
                     // 4 — Export
                     if (cmdArgv.export) {
-                        spinner.start(`Exporting to ${cmdArgv.export}…`);
-                        const ext = path.extname(cmdArgv.export).toLowerCase();
-                        let content: string;
-
-                        if (ext === '.kml') {
-                            content = exportToKml(ds);
-                        } else {
-                            content = exportToJson(ds);
-                        }
-
-                        fs.writeFileSync(cmdArgv.export, content, 'utf-8');
-                        spinner.succeed(`Written to ${cmdArgv.export}`);
+                        const format =
+                            (cmdArgv.exportFormat as ExportFormat | undefined) ??
+                            exportFormatFromPath(cmdArgv.export);
+                        spinner.start(`Exporting ${format} to ${cmdArgv.export}…`);
+                        fs.writeFileSync(cmdArgv.export, exportDataset(ds, format), 'utf-8');
+                        spinner.succeed(`Written ${format} to ${cmdArgv.export}`);
                     }
                 } catch (err: unknown) {
                     const msg = err instanceof Error ? err.message : String(err);

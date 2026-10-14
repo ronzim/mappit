@@ -244,3 +244,48 @@ describe('CLI — quality', () => {
         fs.rmSync(tmp, { recursive: true, force: true });
     });
 });
+
+// ---------------------------------------------------------------------------
+// Export formats (GeoJSON, CSV, E7)
+// ---------------------------------------------------------------------------
+describe('CLI — export formats', () => {
+    const input = path.join(FIXTURES, 'timeline-semantic-paths.json');
+    const withTmp = (name: string, fn: (out: string) => void) => {
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mappit-'));
+        try {
+            fn(path.join(tmp, name));
+        } finally {
+            fs.rmSync(tmp, { recursive: true, force: true });
+        }
+    };
+
+    it('exports GeoJSON from the .geojson extension', () => {
+        withTmp('out.geojson', (out) => {
+            run(['load', input, '--export', out]);
+            expect(JSON.parse(fs.readFileSync(out, 'utf-8')).type).toBe('FeatureCollection');
+        });
+    });
+
+    it('exports CSV from the .csv extension', () => {
+        withTmp('out.csv', (out) => {
+            run(['load', input, '--export', out]);
+            expect(fs.readFileSync(out, 'utf-8').split('\n')[0]).toContain('kind,timestamp');
+        });
+    });
+
+    it('exports E7 locations from the .e7.json extension', () => {
+        withTmp('route.e7.json', (out) => {
+            run(['load', input, '--export', out]);
+            const { locations } = JSON.parse(fs.readFileSync(out, 'utf-8'));
+            expect(locations).toHaveLength(4);
+            expect(locations[0]).toHaveProperty('latitudeE7');
+        });
+    });
+
+    it('honours --export-format over the extension', () => {
+        withTmp('route.json', (out) => {
+            run(['load', input, '--export', out, '--export-format', 'e7']);
+            expect(JSON.parse(fs.readFileSync(out, 'utf-8'))).toHaveProperty('locations');
+        });
+    });
+});
