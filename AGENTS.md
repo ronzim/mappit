@@ -56,7 +56,7 @@ node packages/core/dist/cli.js load <path> [--filter-date A B] [--filter-area s,
 - Segreti CI: `NPM_TOKEN` (pubblicazione npm), `GITHUB_TOKEN` (electron-builder)
 
 ## Deploy
-- `.github/workflows/ci.yml`: lint, test del core (Node 18/20/22), typecheck, build e package Electron su ubuntu/windows/macos con upload degli artefatti. Parte su push verso `main`/`refactoring` e PR verso `main`. **Il branch di default è `master`**: un push su master non avvia la CI. TODO: allineare i branch
+- `.github/workflows/ci.yml`: lint, test del core (Node 20/22), typecheck (dopo la build del core), build e package Electron su ubuntu/windows/macos con upload degli artefatti (`--publish never`: niente release dalla CI). Parte su push e PR verso `master`
 - `.github/workflows/publish.yml`: a ogni GitHub Release pubblica `mappit-core` su npm (`--provenance --access public`)
 - App: artefatti in `packages/app/release/` (Windows `dir` x64, Linux AppImage/deb, macOS dmg)
 
@@ -65,6 +65,7 @@ node packages/core/dist/cli.js load <path> [--filter-date A B] [--filter-area s,
 - Modello unico `MappitDataset` (`points` + `timeline`); coordinate sempre in gradi decimali `lat`/`lng`, mai E7
 - I tipi di attività grezzi di Google vengono ricondotti a gruppi stabili in `activity-mapping.ts`
 - I filtri sono immutabili (restituiscono un nuovo dataset); `filterByActivityType` mantiene sempre le visite; il filtro date tiene le entry che si sovrappongono al range
+- Packaging: l'app pacchettizzata non contiene `node_modules`. Il main include `mappit-core` nel bundle dai sorgenti (alias in `electron.vite.config.ts`) e electron-builder ha `npmRebuild: false`, perché altrimenti lancia `npm install --production` alla radice del monorepo e cancella le devDependencies
 - Electron: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: false` (necessario per il preload). Il main tiene `originalDataset` (mai modificato) e `currentDataset`
 - Formato condiviso con il blog: il blog si aspetta `{ locations: [{ latitudeE7, longitudeE7, timestamp }] }`, mentre l'export di mappit produce `lat`/`lng` decimali. Oggi la conversione è manuale (vedi `PLAN.md` nella repo blog)
 - Prettier: virgolette singole, `printWidth` 100. TODO: `.prettierrc` dice `tabWidth: 2` ma il codice usa 4 spazi
