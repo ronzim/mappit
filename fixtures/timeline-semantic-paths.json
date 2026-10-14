@@ -1,0 +1,52 @@
+{
+    "semanticSegments": [
+        {
+            "startTime": "2024-01-15T11:00:00.000+01:00",
+            "endTime": "2024-01-15T12:30:00.000+01:00",
+            "visit": {
+                "topCandidate": {
+                    "placeId": "ChIJexample_duomo",
+                    "placeLocation": { "latLng": "45.4642°, 9.1900°" },
+                    "semanticType": "TYPE_SEARCHED_ADDRESS",
+                    "name": "Duomo di Milano",
+                    "probability": 0.95
+                }
+            }
+        },
+        {
+            "startTime": "2024-01-15T12:30:00.000+01:00",
+            "endTime": "2024-01-15T13:00:00.000+01:00",
+            "activity": {
+                "start": { "latLng": "45.4642°, 9.1900°" },
+                "end": { "latLng": "45.4700°, 9.1700°" },
+                "topCandidate": { "type": "WALKING", "probability": 0.92 },
+                "distanceMeters": 3850
+            }
+        },
+        {
+            "startTime": "2024-01-15T13:00:00.000+01:00",
+            "endTime": "2024-01-15T14:30:00.000+01:00",
+            "visit": {
+                "topCandidate": {
+                    "placeId": "ChIJexample_parco",
+                    "placeLocation": { "latLng": "45.4700°, 9.1700°" },
+                    "name": "Parco Sempione",
+                    "probability": 0.78
+                }
+            }
+        },
+        {
+            "startTime": "2024-01-15T12:00:00.000+01:00",
+            "endTime": "2024-01-15T14:00:00.000+01:00",
+            "timelinePath": [
+                { "point": "45.4640°, 9.1901°", "time": "2024-01-15T12:10:00.000+01:00" },
+                { "point": "45.4680°, 9.1770°", "time": "2024-01-15T11:50:00.000Z" },
+                { "point": "45.4642°, 9.1900°", "time": "2024-01-15T12:30:00.000+01:00" },
+                { "point": "45.4660°, 9.1840°", "time": "2024-01-15T12:40:00.000+01:00" },
+                { "point": "45.4700°, 9.1700°", "time": "2024-01-15T13:00:00.000+01:00" },
+                { "point": "45.4701°, 9.1699°", "time": "2024-01-15T13:30:00.000+01:00" },
+                { "point": "45.4665°, 9.1830°" }
+            ]
+        }
+    ]
+}

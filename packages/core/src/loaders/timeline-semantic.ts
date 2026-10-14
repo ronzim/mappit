@@ -9,6 +9,10 @@
  * ```
  *
  * Coordinates are encoded as `"45.4642°, 9.1900°"` degree-sign strings.
+ *
+ * In real exports `timelinePath` is not attached to activity segments: it
+ * comes in standalone segments (`startTime`, `endTime`, `timelinePath` only),
+ * whose points are assigned to the activities they fall into by time.
  */
 
 import type {
@@ -83,6 +87,7 @@ export function parseTimelineSemantic(data: unknown): MappitDataset {
   }
 
   const timeline: TimelineEntry[] = [];
+  const orphanPaths: RawPathPoint[][] = [];
   let min = '';
   let max = '';
 
@@ -105,8 +110,14 @@ export function parseTimelineSemantic(data: unknown): MappitDataset {
         seg.timelinePath,
       );
       if (entry) timeline.push(entry);
+    } else if (seg.timelinePath) {
+      // In real exports, GPS paths live in standalone segments that carry
+      // only startTime/endTime/timelinePath (see issue #22).
+      orphanPaths.push(seg.timelinePath);
     }
   }
+
+  assignOrphanPaths(timeline, orphanPaths);
 
   return {
     source: 'timeline-semantic',
@@ -141,6 +152,62 @@ function parseVisit(
     semanticType: v.topCandidate?.semanticType,
     editConfirmationStatus: v.editConfirmationStatus,
   };
+}
+
+/**
+ * Assign the points of standalone `timelinePath` segments to the activities
+ * whose time interval contains each point's `time` (bounds inclusive).
+ *
+ * Only activities without an inline path are filled, to avoid duplicates.
+ * Points with no `time`, or outside every activity (e.g. during a visit),
+ * are dropped. Times are compared as instants, so mixed UTC offsets work.
+ */
+function assignOrphanPaths(
+  timeline: TimelineEntry[],
+  orphanPaths: RawPathPoint[][],
+): void {
+  if (orphanPaths.length === 0) return;
+
+  const targets = timeline
+    .filter((e): e is ActivitySegment => e.type === 'activity' && e.path.length === 0)
+    .map((a) => ({ a, start: Date.parse(a.startTime), end: Date.parse(a.endTime) }))
+    .filter((t) => !Number.isNaN(t.start) && !Number.isNaN(t.end))
+    .sort((x, y) => x.start - y.start);
+  if (targets.length === 0) return;
+
+  const filled = new Set<ActivitySegment>();
+
+  for (const rawPath of orphanPaths) {
+    for (const p of rawPath) {
+      if (!p.point || !p.time) continue;
+      const t = Date.parse(p.time);
+      if (Number.isNaN(t)) continue;
+
+      // Last target with start <= t (binary search)
+      let lo = 0;
+      let hi = targets.length - 1;
+      let idx = -1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (targets[mid].start <= t) {
+          idx = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      if (idx < 0 || t > targets[idx].end) continue;
+
+      const pt = parseDegreeString(p.point);
+      if (!pt) continue;
+      targets[idx].a.path.push({ lat: pt.lat, lng: pt.lng, timestamp: p.time });
+      filled.add(targets[idx].a);
+    }
+  }
+
+  for (const a of filled) {
+    a.path.sort((x, y) => Date.parse(x.timestamp ?? '') - Date.parse(y.timestamp ?? ''));
+  }
 }
 
 function parseActivitySegment(
