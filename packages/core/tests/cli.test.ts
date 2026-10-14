@@ -239,7 +239,7 @@ describe('CLI — quality', () => {
             }),
         );
         const out = run(['load', input, '--sanitize', '--quality']);
-        expect(out).toContain('1 invalid items removed');
+        expect(out).toContain('1 invalid item removed');
         expect(out).toContain('Validation:        ok');
         fs.rmSync(tmp, { recursive: true, force: true });
     });

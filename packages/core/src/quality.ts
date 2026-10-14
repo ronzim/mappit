@@ -10,6 +10,7 @@
  */
 
 import type { ActivitySegment, LocationPoint, MappitDataset, TimelineEntry } from './types';
+import { recomputeDateRange } from './filters';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -203,8 +204,8 @@ export function validateDataset(
 
 /**
  * Return a new dataset without invalid points and timeline entries; invalid
- * path points are removed from their activity, which is kept.
- * The input dataset is not modified.
+ * path points are removed from their activity, which is kept. `dateRange`
+ * is recomputed, as in the filters. The input dataset is not modified.
  */
 export function sanitizeDataset(dataset: MappitDataset): MappitDataset {
     const points = dataset.points.filter((p) => !pointProblem(p));
@@ -215,7 +216,7 @@ export function sanitizeDataset(dataset: MappitDataset): MappitDataset {
             const path = (e.path ?? []).filter(isValidPathPoint);
             return path.length === e.path?.length ? e : { ...e, path };
         });
-    return { ...dataset, points, timeline };
+    return { ...dataset, dateRange: recomputeDateRange(points, timeline), points, timeline };
 }
 
 /**

@@ -363,7 +363,9 @@ export function run(argv?: string[]): void {
                         const before = ds.points.length + ds.timeline.length;
                         ds = sanitizeDataset(ds);
                         const removed = before - ds.points.length - ds.timeline.length;
-                        spinner.succeed(`Sanitized — ${removed} invalid items removed`);
+                        spinner.succeed(
+                            `Sanitized — ${removed} invalid ${removed === 1 ? 'item' : 'items'} removed`,
+                        );
                     }
 
                     // 2 — Filter

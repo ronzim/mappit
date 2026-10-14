@@ -141,6 +141,13 @@ describe('sanitizeDataset', () => {
         expect(validateDataset(clean).valid).toBe(true);
     });
 
+    it('recomputes dateRange from the remaining items', () => {
+        const withRange = { ...dirty, dateRange: { min: '1999-01-01T00:00:00Z', max: '2099-01-01T00:00:00Z' } };
+        const clean = sanitizeDataset(withRange);
+        expect(clean.dateRange.min).toBe('2024-01-01T10:00:00Z');
+        expect(clean.dateRange.max).toBe('2024-01-01T12:00:00Z');
+    });
+
     it('does not modify the input', () => {
         sanitizeDataset(dirty);
         expect(dirty.points).toHaveLength(3);
