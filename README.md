@@ -15,13 +15,13 @@
 
 MappIt is a privacy-first toolkit for exploring your Google Location History locally:
 
-- **Electron desktop app** with interactive map (deck.gl + MapLibre), timeline sidebar, activity filters, area search, and KML/JSON export
+- **Electron desktop app** with interactive map (deck.gl + MapLibre), timeline sidebar, activity filters, area search, and KML/JSON/GeoJSON/CSV/E7 export
 - **Node.js CLI** for headless processing, filtering, and exporting
 - **Core library** (`mappit-core`) usable in your own scripts
 - Auto-detects all Google Takeout location formats (Records.json, Timeline.json standard/semantic/iOS, monthly Semantic Location History files)
 - Filters by date range, bounding box, or activity type
 - Computes stats: distance per activity, monthly summaries, yearly breakdowns
-- Exports to JSON and KML
+- Exports to JSON, KML, GeoJSON, CSV and E7 locations (`latitudeE7`/`longitudeE7`)
 
 </details>
 
@@ -134,6 +134,7 @@ npx mappit-core load ./data --stats
 # Esportazione
 npx mappit-core load ./data --filter-date 2024-01-01 2024-06-30 --export output.json
 npx mappit-core load ./data --filter-date 2024-01-01 2024-06-30 --export output.kml
+npx mappit-core load ./data --filter-date 2024-01-01 2024-06-30 --export route.e7.json   # E7 per il blog
 ```
 
 Tutte le opzioni:
@@ -152,7 +153,8 @@ Options:
   -a, --filter-area      Filtra per bounding box: south,west,north,east [string]
       --filter-activity   Filtra per tipo di attività (separati da virgola)
                                                                         [string]
-  -e, --export           Esporta su file (.json o .kml)                 [string]
+  -e, --export           Esporta su file (.json, .kml, .geojson, .csv, .e7.json)  [string]
+      --export-format    Forza il formato (json, kml, geojson, csv, e7)  [string]
   -s, --stats            Mostra statistiche di riepilogo
                                                       [boolean] [default: false]
 ```
@@ -194,7 +196,7 @@ App desktop per esplorare i dati di Google Location History. Usa `mappit-core` c
 - Auto-detect del formato (tutti e 5 i formati supportati dal core)
 - Visualizzazione summary: statistiche generali, distanza per attività, breakdown annuale
 - Filtro per intervallo date con ricalcolo statistiche
-- Export dataset filtrato in JSON o KML
+- Export dataset filtrato in JSON, KML, GeoJSON, CSV o E7
 
 ### Architettura
 
@@ -234,7 +236,7 @@ dist/
 - **Vite** v7 come bundler per il renderer
 - **Vanilla TypeScript** per la UI (nessun framework)
 
-> L'app include mappa interattiva (deck.gl + MapLibre), sidebar timeline, filtri attività, ricerca luoghi, area search, summary con grafici, e export KML/JSON.
+> L'app include mappa interattiva (deck.gl + MapLibre), sidebar timeline, filtri attività, ricerca luoghi, area search, summary con grafici, e export KML/JSON/GeoJSON/CSV/E7.
 
 ### Distribuzione
 

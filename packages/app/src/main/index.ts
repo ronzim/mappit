@@ -24,8 +24,8 @@ import {
     computeSummary,
     computeYearlySummary,
     computeMonthlySummary,
-    exportToJson,
-    exportToKml,
+    exportDataset,
+    exportFormatFromPath,
 } from 'mappit-core';
 import type { MappitDataset, DataSource, BoundingBox, PlaceVisit } from 'mappit-core';
 import type { PlaceSearchHit } from '../shared/ipc-channels';
@@ -315,13 +315,8 @@ function registerIpcHandlers(): void {
                 throw new Error('No dataset loaded');
             }
 
-            const ext = path.extname(args.filePath).toLowerCase();
-            const content =
-                ext === '.kml'
-                    ? exportToKml(currentDataset)
-                    : exportToJson(currentDataset);
-
-            fs.writeFileSync(args.filePath, content, 'utf-8');
+            const format = exportFormatFromPath(args.filePath);
+            fs.writeFileSync(args.filePath, exportDataset(currentDataset, format), 'utf-8');
             return true;
         },
     );

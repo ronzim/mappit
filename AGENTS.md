@@ -35,11 +35,11 @@ npm run typecheck --workspace=packages/app
 npm run dist --workspace=packages/app        # build + electron-builder (anche dist:win / dist:mac / dist:linux)
 
 # CLI dopo la build del core
-node packages/core/dist/cli.js load <path> [--filter-date A B] [--filter-area s,w,n,e] [--filter-activity X,Y] [--stats] [--export out.json|out.kml]
+node packages/core/dist/cli.js load <path> [--filter-date A B] [--filter-area s,w,n,e] [--filter-activity X,Y] [--stats] [--quality] [--sanitize] [--export out.json|.kml|.geojson|.csv|.e7.json] [--export-format F]
 ```
 
 ## Struttura
-- `packages/core/src/` — `loaders/` (un loader per formato Google + auto-detect), `filters.ts`, `stats.ts`, `transforms.ts`, `exporters/` (JSON, KML), `activity-mapping.ts`, `types.ts`, `cli.ts`, `index.ts`
+- `packages/core/src/` — `loaders/` (un loader per formato Google + auto-detect), `filters.ts`, `stats.ts`, `quality.ts`, `transforms.ts`, `exporters/` (JSON, KML, GeoJSON, CSV, E7 + dispatcher `exportDataset`), `activity-mapping.ts`, `types.ts`, `cli.ts`, `index.ts`
 - `packages/core/tests/` — test Vitest, con la stessa struttura di `src/`
 - `packages/app/src/main/` — main process Electron (dataset in memoria, dialog, IPC)
 - `packages/app/src/preload/` — espone `window.api` tipizzato via `contextBridge`
@@ -67,5 +67,5 @@ node packages/core/dist/cli.js load <path> [--filter-date A B] [--filter-area s,
 - I filtri sono immutabili (restituiscono un nuovo dataset); `filterByActivityType` mantiene sempre le visite; il filtro date tiene le entry che si sovrappongono al range
 - Packaging: l'app pacchettizzata non contiene `node_modules`. Il main include `mappit-core` nel bundle dai sorgenti (alias in `electron.vite.config.ts`) e electron-builder ha `npmRebuild: false`, perché altrimenti lancia `npm install --production` alla radice del monorepo e cancella le devDependencies
 - Electron: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: false` (necessario per il preload). Il main tiene `originalDataset` (mai modificato) e `currentDataset`
-- Formato condiviso con il blog: il blog si aspetta `{ locations: [{ latitudeE7, longitudeE7, timestamp }] }`, mentre l'export di mappit produce `lat`/`lng` decimali. Oggi la conversione è manuale (vedi `PLAN.md` nella repo blog)
+- Formato condiviso con il blog: il blog si aspetta `{ locations: [{ latitudeE7, longitudeE7, timestamp }] }`. Lo produce l'exporter E7 (`exportToE7`, CLI `--export route.e7.json`): punti grezzi + punti dei path delle activity, ordinati per tempo; è l'unico punto in cui mappit usa coordinate E7
 - Prettier: virgolette singole, `printWidth` 100. TODO: `.prettierrc` dice `tabWidth: 2` ma il codice usa 4 spazi
