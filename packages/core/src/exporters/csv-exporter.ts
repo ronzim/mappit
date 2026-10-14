@@ -6,6 +6,8 @@
  * - `visit`: a visit (`timestamp` = start, `end_time` = end)
  * - `path`: a GPS point of an activity path (`timestamp` falls back to the
  *   activity start when the point has none)
+ * - `activity`: for activities without a path, two rows with the start and
+ *   end location (at `startTime` and `endTime`), so no activity is lost
  *
  * Coordinates are decimal degrees. Values are quoted per RFC 4180 when needed.
  */
@@ -70,6 +72,19 @@ export function exportToCsv(dataset: MappitDataset, options: CsvExportOptions = 
                 name: e.name,
                 place_id: e.placeId,
             });
+        } else if (e.path.length === 0) {
+            for (const [loc, t] of [
+                [e.startLocation, e.startTime],
+                [e.endLocation, e.endTime],
+            ] as const) {
+                rows.push({
+                    kind: 'activity',
+                    timestamp: t,
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    activity_type: e.activityType,
+                });
+            }
         } else {
             for (const p of e.path) {
                 rows.push({

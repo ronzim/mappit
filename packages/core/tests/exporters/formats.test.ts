@@ -105,8 +105,28 @@ describe('exportToCsv', () => {
 
     it('writes the header and one row per point, visit and path point', () => {
         expect(lines[0]).toBe(CSV_COLUMNS.join(','));
-        expect(lines).toHaveLength(1 + 1 + 1 + 3);
-        expect(lines.slice(1).map((l) => l.split(',')[0])).toEqual(['point', 'visit', 'path', 'path', 'path']);
+        expect(lines).toHaveLength(1 + 1 + 1 + 3 + 2);
+        expect(lines.slice(1).map((l) => l.split(',')[0])).toEqual([
+            'point',
+            'visit',
+            'path',
+            'path',
+            'path',
+            'activity',
+            'activity',
+        ]);
+    });
+
+    it('keeps pathless activities as start/end rows', () => {
+        expect(lines[6].split(',').slice(0, 6)).toEqual([
+            'activity',
+            '2024-01-15T12:30:00Z',
+            '',
+            '45.47',
+            '9.17',
+            'IN_VEHICLE',
+        ]);
+        expect(lines[7].split(',')[1]).toBe('2024-01-15T13:00:00Z');
     });
 
     it('quotes values with delimiters or quotes', () => {
