@@ -28,6 +28,7 @@
         "extraMetadata": {
             "main": "dist/main/index.js"
         },
+        "npmRebuild": false,
         "win": {
             "target": [
                 {
