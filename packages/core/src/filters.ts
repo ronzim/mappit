@@ -37,7 +37,8 @@ function isInBounds(lat: number, lng: number, bounds: BoundingBox): boolean {
     );
 }
 
-function recomputeDateRange(
+/** @internal Recompute `dateRange` from the remaining points and entries. */
+export function recomputeDateRange(
     points: LocationPoint[],
     timeline: TimelineEntry[],
 ): { min: string; max: string } {

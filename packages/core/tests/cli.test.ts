@@ -205,3 +205,42 @@ describe('CLI — stats', () => {
         expect(out).toContain('Dataset Summary');
     });
 });
+
+// ---------------------------------------------------------------------------
+// Quality & sanitize
+// ---------------------------------------------------------------------------
+describe('CLI — quality', () => {
+    it('prints quality metrics with --quality', () => {
+        const out = run(['load', path.join(FIXTURES, 'timeline-semantic-paths.json'), '--quality']);
+        expect(out).toContain('Data Quality');
+        expect(out).toContain('Validation:        ok');
+        expect(out).toContain('Activities w/ path: 1 / 1 (100.0%)');
+        expect(out).not.toContain('Dataset Summary');
+    });
+
+    it('drops invalid items with --sanitize', () => {
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mappit-'));
+        const input = path.join(tmp, 'dirty.json');
+        fs.writeFileSync(
+            input,
+            JSON.stringify({
+                semanticSegments: [
+                    {
+                        startTime: '2024-01-15T10:00:00Z',
+                        endTime: '2024-01-15T11:00:00Z',
+                        visit: { topCandidate: { placeLocation: { latLng: '45.46°, 9.19°' } } },
+                    },
+                    {
+                        startTime: '2024-01-15T12:00:00Z',
+                        endTime: '2024-01-15T11:30:00Z',
+                        visit: { topCandidate: { placeLocation: { latLng: '45.47°, 9.17°' } } },
+                    },
+                ],
+            }),
+        );
+        const out = run(['load', input, '--sanitize', '--quality']);
+        expect(out).toContain('1 invalid item removed');
+        expect(out).toContain('Validation:        ok');
+        fs.rmSync(tmp, { recursive: true, force: true });
+    });
+});

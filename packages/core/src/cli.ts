@@ -11,6 +11,8 @@
  *   mappit-core load <path> --export output.json
  *   mappit-core load <path> --export output.kml
  *   mappit-core load <path> --stats
+ *   mappit-core load <path> --quality                             # validation + quality metrics
+ *   mappit-core load <path> --sanitize --export clean.json        # drop invalid items
  */
 
 import * as fs from 'node:fs';
@@ -29,6 +31,7 @@ import { parseTakeoutMonthly } from './loaders/takeout-monthly';
 import { filterByDateRange, filterByArea, filterByActivityType } from './filters';
 import type { BoundingBox } from './filters';
 import { computeSummary, computeYearlySummary } from './stats';
+import { validateDataset, sanitizeDataset, computeQualityMetrics } from './quality';
 import { exportToJson } from './exporters/json-exporter';
 import { exportToKml } from './exporters/kml-exporter';
 import type { MappitDataset, DataSource } from './types';
@@ -189,6 +192,48 @@ function printSummary(ds: MappitDataset): void {
 }
 
 /**
+ * Pretty-print validation report and quality metrics to stdout.
+ */
+function printQuality(ds: MappitDataset): void {
+    const v = validateDataset(ds);
+    const q = computeQualityMetrics(ds);
+
+    console.log('\n  Data Quality');
+    console.log('─'.repeat(45));
+    console.log(`Validation:        ${v.valid ? 'ok' : `${v.issueCount.toLocaleString()} issues`}`);
+    for (const [reason, count] of Object.entries(v.byReason)) {
+        if (count > 0) console.log(`  ${reason.padEnd(20)} ${count.toLocaleString().padStart(10)}`);
+    }
+
+    const cov = q.activityPathCoverage;
+    if (cov.ratio !== null) {
+        console.log(
+            `Activities w/ path: ${cov.withPath.toLocaleString()} / ${cov.activities.toLocaleString()} (${(cov.ratio * 100).toFixed(1)}%)`,
+        );
+    }
+
+    if (q.accuracy) {
+        const a = q.accuracy;
+        console.log(`Accuracy (m):      median ${a.median}, p90 ${a.p90}, max ${a.max}`);
+        for (const b of a.buckets) {
+            console.log(`  ${b.label.padEnd(20)} ${b.count.toLocaleString().padStart(10)}`);
+        }
+    }
+
+    const g = q.gaps;
+    if (g.basis !== 'none') {
+        console.log(
+            `Gaps > ${g.thresholdMinutes} min:     ${g.count.toLocaleString()} (${g.totalHours.toFixed(1)} h, on ${g.basis})`,
+        );
+        for (const gap of g.largest) {
+            console.log(`  ${gap.start} → ${gap.end}  ${gap.hours.toFixed(1)} h`);
+        }
+    }
+
+    console.log();
+}
+
+/**
  * Apply all filters specified via CLI flags.
  */
 function applyFilters(
@@ -289,6 +334,17 @@ export function run(argv?: string[]): void {
                         describe: 'Print summary statistics',
                         type: 'boolean',
                         default: false,
+                    })
+                    .option('quality', {
+                        alias: 'q',
+                        describe: 'Print validation report and data quality metrics',
+                        type: 'boolean',
+                        default: false,
+                    })
+                    .option('sanitize', {
+                        describe: 'Drop invalid points and timeline entries before filtering',
+                        type: 'boolean',
+                        default: false,
                     }),
             (cmdArgv) => {
                 const spinner = ora({ stream: process.stdout });
@@ -301,6 +357,16 @@ export function run(argv?: string[]): void {
                     spinner.succeed(
                         `Loaded ${ds.source} — ${ds.points.length} points, ${ds.timeline.length} timeline entries`,
                     );
+
+                    // 1b — Sanitize
+                    if (cmdArgv.sanitize) {
+                        const before = ds.points.length + ds.timeline.length;
+                        ds = sanitizeDataset(ds);
+                        const removed = before - ds.points.length - ds.timeline.length;
+                        spinner.succeed(
+                            `Sanitized — ${removed} invalid ${removed === 1 ? 'item' : 'items'} removed`,
+                        );
+                    }
 
                     // 2 — Filter
                     const hasFilters =
@@ -319,8 +385,11 @@ export function run(argv?: string[]): void {
                     }
 
                     // 3 — Stats
-                    if (cmdArgv.stats || (!cmdArgv.export && !hasFilters)) {
+                    if (cmdArgv.stats || (!cmdArgv.export && !hasFilters && !cmdArgv.quality)) {
                         printSummary(ds);
+                    }
+                    if (cmdArgv.quality) {
+                        printQuality(ds);
                     }
 
                     // 4 — Export

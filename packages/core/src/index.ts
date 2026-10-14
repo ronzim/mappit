@@ -74,6 +74,20 @@ export {
   type PeriodSummary,
 } from './stats';
 
+// Data validation & quality metrics
+export {
+  validateDataset,
+  sanitizeDataset,
+  computeQualityMetrics,
+  type ValidationReason,
+  type ValidationIssue,
+  type ValidationReport,
+  type ValidateOptions,
+  type TimelineGap,
+  type QualityMetrics,
+  type QualityOptions,
+} from './quality';
+
 // Phase 2.4–2.5 — Exporters
 export {
   exportToJson,
