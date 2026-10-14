@@ -2,7 +2,13 @@
     "name": "mappit-app",
     "version": "0.1.0",
     "description": "Electron app for visualizing Google Location History",
-    "author": "ronzim",
+    "author": "ronzim <45311591+ronzim@users.noreply.github.com>",
+    "homepage": "https://github.com/ronzim/mappit#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ronzim/mappit.git",
+        "directory": "packages/app"
+    },
     "private": true,
     "main": "dist/main/index.js",
     "scripts": {
