@@ -3,7 +3,16 @@ import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 
 export default defineConfig({
     main: {
-        plugins: [externalizeDepsPlugin()],
+        // mappit-core is bundled into the main process, because the packaged
+        // app ships without node_modules (see "files" in package.json). It is
+        // bundled from source: Rollup can't see the re-exports of the
+        // CommonJS build in packages/core/dist.
+        plugins: [externalizeDepsPlugin({ exclude: ['mappit-core'] })],
+        resolve: {
+            alias: {
+                'mappit-core': resolve(__dirname, '../core/src/index.ts'),
+            },
+        },
         build: {
             outDir: 'dist/main',
             rollupOptions: {
